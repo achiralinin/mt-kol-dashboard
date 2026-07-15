@@ -2,7 +2,7 @@ name: Auto Update TikTok Stats
 
 on:
   schedule:
-    - cron: '*/30 * * * *'   # ทุก 30 นาที
+    - cron: '*/15 * * * *'   # ทุก 30 นาที
   workflow_dispatch:          # รันเองจากปุ่มได้
 
 permissions:
