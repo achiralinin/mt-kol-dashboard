@@ -1,0 +1,41 @@
+name: Auto Update TikTok Stats
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'   # ทุก 30 นาที
+  workflow_dispatch:          # รันเองจากปุ่มได้
+
+permissions:
+  contents: write
+
+concurrency:
+  group: scrape
+  cancel-in-progress: false
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install yt-dlp
+        run: pip install --upgrade yt-dlp
+
+      - name: Scrape TikTok
+        run: python3 scripts/tiktok_scraper.py
+
+      - name: Commit updated stats
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if ! git diff --quiet scrape_results.json; then
+            git add scrape_results.json
+            git commit -m "chore: auto-update TikTok stats [skip ci]"
+            git push
+          else
+            echo "No changes."
+          fi

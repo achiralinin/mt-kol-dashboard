@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Money Thunder — KOL Performance Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --blue-900:#0B2A5B;
+  --blue-700:#1246A0;
+  --blue-500:#2563EB;
+  --blue-300:#7BA7F0;
+  --blue-100:#E8F0FE;
+  --blue-50:#F5F8FF;
+  --ink:#0F172A;
+  --muted:#64748B;
+  --line:#E2E8F0;
+  --white:#FFFFFF;
+  --amber:#B45309;
+  --amber-bg:#FEF6E7;
+  --slate:#475569;
+  --slate-bg:#F1F5F9;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Sarabun',sans-serif;background:var(--blue-50);color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1500px;margin:0 auto;padding:24px}
+
+header{background:linear-gradient(135deg,var(--blue-900) 0%,var(--blue-500) 100%);color:#fff;border-radius:14px;padding:32px;margin-bottom:22px}
+header h1{font-size:2.1em;font-weight:700;letter-spacing:-.5px}
+header .sub{opacity:.88;font-size:.95em;margin-top:4px}
+.hmeta{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}
+.chip{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.22);padding:7px 14px;border-radius:999px;font-size:.85em;font-weight:500}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:22px}
+.card{background:var(--white);border:1px solid var(--line);border-radius:12px;padding:20px;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;width:100%;height:3px;background:var(--blue-500)}
+.card .lbl{font-size:.78em;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;font-weight:600}
+.card .val{font-size:1.9em;font-weight:700;color:var(--blue-900);margin-top:6px;line-height:1.2}
+.card .note{font-size:.8em;color:var(--muted);margin-top:2px}
+
+.panel{background:var(--white);border:1px solid var(--line);border-radius:12px;padding:22px;margin-bottom:20px}
+.panel h2{font-size:1.15em;font-weight:700;color:var(--blue-900);margin-bottom:4px}
+.panel .desc{font-size:.85em;color:var(--muted);margin-bottom:16px}
+
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px}
+.search{flex:1;min-width:200px;padding:9px 13px;border:1px solid var(--line);border-radius:8px;font-family:inherit;font-size:.9em;outline:none}
+.search:focus{border-color:var(--blue-500)}
+.tabs{display:flex;gap:8px;flex-wrap:wrap}
+.tab{padding:8px 15px;border:1px solid var(--line);background:var(--white);border-radius:8px;font-family:inherit;font-size:.85em;font-weight:600;color:var(--muted);cursor:pointer;transition:.15s}
+.tab:hover{border-color:var(--blue-300);color:var(--blue-700)}
+.tab.on{background:var(--blue-500);border-color:var(--blue-500);color:#fff}
+
+.tblwrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+table{width:100%;border-collapse:collapse;font-size:.9em;min-width:920px}
+thead th{background:var(--blue-100);color:var(--blue-900);font-weight:700;text-align:left;padding:12px 14px;white-space:nowrap;font-size:.85em;border-bottom:1px solid var(--line)}
+thead th.num{text-align:right}
+thead th.sortable{cursor:pointer;user-select:none}
+thead th.sortable:hover{background:var(--blue-300);color:#fff}
+thead th .arrow{opacity:.4;font-size:.85em;margin-left:3px}
+thead th.asc .arrow,thead th.desc .arrow{opacity:1}
+tbody td{padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--blue-50)}
+td.num{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+td.rank{color:var(--muted);font-weight:700;text-align:center;width:44px}
+.kol-name{font-weight:600;color:var(--ink)}
+
+.tier{display:inline-block;padding:3px 9px;border-radius:6px;font-size:.78em;font-weight:600;white-space:nowrap}
+.tier-mega{background:#EDE9FE;color:#6D28D9}
+.tier-macro{background:#DBEAFE;color:#1D4ED8}
+.tier-micro{background:#DCFCE7;color:#15803D}
+.tier-news{background:#FEF3C7;color:#B45309}
+.tier-none{background:var(--slate-bg);color:var(--slate)}
+
+.chans{display:flex;gap:5px;flex-wrap:wrap}
+.clink{display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:26px;padding:0 8px;border-radius:6px;font-size:.75em;font-weight:700;text-decoration:none;border:1px solid transparent;transition:.15s}
+.c-tt{background:#0F172A;color:#fff}
+.c-tt:hover{background:#000}
+.c-fb{background:#E7F0FF;color:#1877F2;border-color:#CFE0FF}
+.c-fb:hover{background:#D4E5FF}
+.c-ig{background:#FCE7F3;color:#C13584;border-color:#F5D0E6}
+.c-ig:hover{background:#FADCEC}
+.c-yt{background:#FEE2E2;color:#DC2626;border-color:#FCC}
+.c-yt:hover{background:#FECACA}
+
+.badge{display:inline-block;padding:3px 10px;border-radius:6px;font-size:.76em;font-weight:600;white-space:nowrap}
+.badge-wait{background:var(--slate-bg);color:var(--slate)}
+.badge-pull{background:var(--amber-bg);color:var(--amber)}
+
+.legend{display:flex;flex-wrap:wrap;gap:16px;margin-top:14px;font-size:.8em;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.dot{width:10px;height:10px;border-radius:3px;display:inline-block}
+
+footer{text-align:center;color:var(--muted);font-size:.8em;padding:18px 0 6px}
+.updated{font-size:.8em;color:var(--muted);margin-top:6px}
+
+@media(max-width:768px){
+  .wrap{padding:14px}
+  header{padding:22px}
+  header h1{font-size:1.55em}
+  .cards{grid-template-columns:1fr 1fr;gap:10px}
+  .card{padding:14px}
+  .card .val{font-size:1.45em}
+  table,thead,tbody,th,td,tr{display:block}
+  thead{display:none}
+  table{min-width:0}
+  .tblwrap{border:none}
+  tbody tr{border:1px solid var(--line);border-radius:10px;margin-bottom:12px;padding:12px;background:var(--white)}
+  tbody td{border:none;padding:6px 4px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+  tbody td::before{content:attr(data-label);font-weight:600;color:var(--muted);font-size:.82em;flex-shrink:0}
+  td.num{text-align:right;justify-content:space-between}
+  td.rank{text-align:left;width:auto}
+  .chans{justify-content:flex-end}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Money Thunder</h1>
+    <div class="sub">แดชบอร์ดผลงาน KOL — สรุปยอด Performance รายคลิป</div>
+    <div class="hmeta">
+      <span class="chip">ลูกค้า: SCB / ABACUS</span>
+      <span class="chip">Agency: Nick &amp; Co.</span>
+      <span class="chip" id="chipKol">KOL —</span>
+      <span class="chip" id="chipClips">คลิป TikTok —</span>
+    </div>
+  </header>
+
+  <div class="cards" id="cards"></div>
+
+  <div class="panel">
+    <h2>ผลงานรายคลิป</h2>
+    <div class="desc">เรียงตามยอดวิวมากไปน้อย — คลิกหัวคอลัมน์เพื่อสลับการเรียง</div>
+    <div class="toolbar">
+      <input class="search" id="search" type="text" placeholder="ค้นหาชื่อ KOL...">
+      <div class="tabs" id="tabs">
+        <button class="tab on" data-f="all">ทั้งหมด</button>
+        <button class="tab" data-f="tiktok">มี TikTok</button>
+        <button class="tab" data-f="wait">รอเติมข้อมูล</button>
+      </div>
+    </div>
+    <div class="tblwrap">
+      <table id="tbl">
+        <thead>
+          <tr>
+            <th class="rank">#</th>
+            <th class="sortable" data-k="name">KOL <span class="arrow"></span></th>
+            <th class="sortable" data-k="tier">Tier <span class="arrow"></span></th>
+            <th>ช่องทางที่โพสต์</th>
+            <th class="num sortable" data-k="views">Views <span class="arrow"></span></th>
+            <th class="num sortable" data-k="likes">Likes <span class="arrow"></span></th>
+            <th class="num sortable" data-k="comments">Comments <span class="arrow"></span></th>
+            <th class="num sortable" data-k="shares">Shares <span class="arrow"></span></th>
+            <th class="num sortable" data-k="er">ER <span class="arrow"></span></th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <div class="legend">
+      <span><i class="dot" style="background:#CBD5E1"></i> รอเติม = ไม่มีลิงก์ TikTok (โพสต์ช่องอื่น)</span>
+      <span><i class="dot" style="background:#FCD34D"></i> รอดึง = มีลิงก์ แต่ยังไม่ได้ดึงยอด</span>
+    </div>
+  </div>
+
+  <footer>
+    Money Thunder KOL Dashboard · ยอดอัปเดตอัตโนมัติทุก 30 นาที
+    <div class="updated" id="updated"></div>
+  </footer>
+</div>
+
+<script>
+const nf = n => (n==null? null : Number(n).toLocaleString('th-TH'));
+const tierClass = t => {
+  const s = (t||'').toLowerCase();
+  if(s.includes('mega')) return 'tier-mega';
+  if(s.includes('macro')) return 'tier-macro';
+  if(s.includes('micro')) return 'tier-micro';
+  if(t && (t.includes('ข่าว'))) return 'tier-news';
+  return 'tier-none';
+};
+
+let DATA = [];
+let state = { filter:'all', q:'', sortKey:'views', sortDir:'desc' };
+
+function erOf(r){
+  if(r.views && r.views>0){
+    return ((r.likes||0)+(r.comments||0)+(r.shares||0))/r.views;
+  }
+  return null;
+}
+function hasStats(r){ return r.views!=null; }
+
+function computeCards(){
+  const scraped = DATA.filter(hasStats);
+  const totalViews = scraped.reduce((a,r)=>a+(r.views||0),0);
+  const totalLikes = scraped.reduce((a,r)=>a+(r.likes||0),0);
+  const totalEng = scraped.reduce((a,r)=>a+((r.likes||0)+(r.comments||0)+(r.shares||0)),0);
+  const erVals = scraped.map(erOf).filter(v=>v!=null);
+  const avgER = erVals.length? erVals.reduce((a,b)=>a+b,0)/erVals.length : null;
+  const avgViews = scraped.length? totalViews/scraped.length : null;
+  const dash = '—';
+  const cards = [
+    {lbl:'Total Views', val: scraped.length? nf(totalViews) : dash, note:`จาก ${scraped.length} คลิปที่ดึงแล้ว`},
+    {lbl:'Total Engagement', val: scraped.length? nf(totalEng) : dash, note:'Likes + Comments + Shares'},
+    {lbl:'Avg ER', val: avgER!=null? (avgER*100).toFixed(2)+'%' : dash, note:'เฉลี่ยต่อคลิป'},
+    {lbl:'Total Likes', val: scraped.length? nf(totalLikes) : dash, note:'รวมทุกคลิป'},
+    {lbl:'Avg Views / Clip', val: avgViews!=null? nf(Math.round(avgViews)) : dash, note:'เฉลี่ยต่อคลิป'},
+  ];
+  document.getElementById('cards').innerHTML = cards.map(c=>
+    `<div class="card"><div class="lbl">${c.lbl}</div><div class="val">${c.val}</div><div class="note">${c.note}</div></div>`
+  ).join('');
+}
+
+function channelLinks(r){
+  const out=[];
+  if(r.tiktok)   out.push(`<a class="clink c-tt" href="${r.tiktok}" target="_blank" rel="noopener">TT</a>`);
+  if(r.facebook) out.push(`<a class="clink c-fb" href="${r.facebook}" target="_blank" rel="noopener">FB</a>`);
+  if(r.instagram)out.push(`<a class="clink c-ig" href="${r.instagram}" target="_blank" rel="noopener">IG</a>`);
+  if(r.youtube)  out.push(`<a class="clink c-yt" href="${r.youtube}" target="_blank" rel="noopener">YT</a>`);
+  return `<div class="chans">${out.join('')||'<span class="badge badge-wait">—</span>'}</div>`;
+}
+
+function statCell(r, key){
+  if(!r.tiktok) return `<span class="badge badge-wait">รอเติม</span>`;
+  if(r[key]==null) return `<span class="badge badge-pull">รอดึง</span>`;
+  return nf(r[key]);
+}
+function erCell(r){
+  if(!r.tiktok) return `<span class="badge badge-wait">รอเติม</span>`;
+  const er = erOf(r);
+  if(er==null) return `<span class="badge badge-pull">รอดึง</span>`;
+  return (er*100).toFixed(2)+'%';
+}
+
+function filtered(){
+  let rows = DATA.slice();
+  if(state.filter==='tiktok') rows = rows.filter(r=>r.tiktok);
+  else if(state.filter==='wait') rows = rows.filter(r=>!r.tiktok || r.views==null);
+  if(state.q){
+    const q = state.q.toLowerCase();
+    rows = rows.filter(r=>(r.name||'').toLowerCase().includes(q));
+  }
+  const k = state.sortKey, dir = state.sortDir==='asc'?1:-1;
+  rows.sort((a,b)=>{
+    let va,vb;
+    if(k==='name'){ va=a.name||''; vb=b.name||''; return va.localeCompare(vb,'th')*dir; }
+    if(k==='tier'){ va=a.tier||''; vb=b.tier||''; return va.localeCompare(vb,'th')*dir; }
+    if(k==='er'){ va=erOf(a); vb=erOf(b); }
+    else { va=a[k]; vb=b[k]; }
+    const an=va==null, bn=vb==null;
+    if(an&&bn) return 0;
+    if(an) return 1;
+    if(bn) return -1;
+    return (va-vb)*dir;
+  });
+  return rows;
+}
+
+function render(){
+  computeCards();
+  const rows = filtered();
+  const tb = document.getElementById('tbody');
+  tb.innerHTML = rows.map((r,i)=>`
+    <tr>
+      <td class="rank" data-label="#">${i+1}</td>
+      <td data-label="KOL"><span class="kol-name">${r.name}</span></td>
+      <td data-label="Tier"><span class="tier ${tierClass(r.tier)}">${r.tier||'—'}</span></td>
+      <td data-label="ช่องทาง">${channelLinks(r)}</td>
+      <td class="num" data-label="Views">${statCell(r,'views')}</td>
+      <td class="num" data-label="Likes">${statCell(r,'likes')}</td>
+      <td class="num" data-label="Comments">${statCell(r,'comments')}</td>
+      <td class="num" data-label="Shares">${statCell(r,'shares')}</td>
+      <td class="num" data-label="ER">${erCell(r)}</td>
+    </tr>`).join('');
+  document.querySelectorAll('thead th.sortable').forEach(th=>{
+    th.classList.remove('asc','desc');
+    const arr = th.querySelector('.arrow');
+    if(th.dataset.k===state.sortKey){
+      th.classList.add(state.sortDir);
+      arr.textContent = state.sortDir==='asc'?'▲':'▼';
+    } else { arr.textContent='↕'; }
+  });
+}
+
+function bind(){
+  document.getElementById('search').addEventListener('input', e=>{ state.q=e.target.value; render(); });
+  document.querySelectorAll('#tabs .tab').forEach(t=>{
+    t.addEventListener('click', ()=>{
+      document.querySelectorAll('#tabs .tab').forEach(x=>x.classList.remove('on'));
+      t.classList.add('on'); state.filter=t.dataset.f; render();
+    });
+  });
+  document.querySelectorAll('thead th.sortable').forEach(th=>{
+    th.addEventListener('click', ()=>{
+      const k=th.dataset.k;
+      if(state.sortKey===k) state.sortDir = state.sortDir==='asc'?'desc':'asc';
+      else { state.sortKey=k; state.sortDir = (k==='name'||k==='tier')?'asc':'desc'; }
+      render();
+    });
+  });
+}
+
+fetch('scrape_results.json?_='+Date.now())
+  .then(r=>r.json())
+  .then(d=>{
+    DATA = d;
+    const clips = DATA.filter(r=>r.tiktok).length;
+    document.getElementById('chipKol').textContent = `KOL ${DATA.length} คน`;
+    document.getElementById('chipClips').textContent = `คลิป TikTok ${clips} คลิป`;
+    document.getElementById('updated').textContent = 'อัปเดตล่าสุด: ' + new Date().toLocaleString('th-TH');
+    bind();
+    render();
+  })
+  .catch(e=>{
+    document.getElementById('tbody').innerHTML =
+      `<tr><td colspan="9" style="padding:24px;text-align:center;color:var(--muted)">โหลดข้อมูลไม่สำเร็จ: ${e.message}</td></tr>`;
+  });
+</script>
+</body>
+</html>
